@@ -4,7 +4,8 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
 export default function TelegramAuth() {
-    const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [initDataState, setInitDataState] = useState(null)
     const router = useRouter()
 
     useEffect(() => {
@@ -21,7 +22,8 @@ export default function TelegramAuth() {
     const authenticateUser = async () => {
         const WebApp = (await import('@twa-dev/sdk')).default
         WebApp.ready()
-        const initData = WebApp.initData
+      const initData = WebApp.initData
+      setInitDataState(initData)
         if (initData) {
             try {
                 const response = await fetch('/api/auth', {
@@ -60,7 +62,8 @@ export default function TelegramAuth() {
                 </>
             ) : (
                 <div>
-                    <p>You need to be an owner of this account</p>
+              <p>You need to be an owner of this account</p>
+              <p>Init data : {initDataState}</p>
                     <button
                         onClick={authenticateUser}
                         className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
