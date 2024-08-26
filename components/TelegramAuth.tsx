@@ -5,7 +5,6 @@ import { useEffect, useState } from 'react'
 
 export default function TelegramAuth() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [initDataState, setInitDataState] = useState<null | string>(null)
     const router = useRouter()
 
     useEffect(() => {
@@ -23,7 +22,6 @@ export default function TelegramAuth() {
         const WebApp = (await import('@twa-dev/sdk')).default
         WebApp.ready()
       const initData = WebApp.initData
-      setInitDataState(initData)
         if (initData) {
             try {
                 const response = await fetch('/api/auth', {
@@ -53,7 +51,6 @@ export default function TelegramAuth() {
             {isAuthenticated ? (
                 <>
             <p>Authenticated!</p>
-            <p>Init data : {initDataState}</p>
                     <button
                         onClick={() => router.push('/protected')}
                         className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
