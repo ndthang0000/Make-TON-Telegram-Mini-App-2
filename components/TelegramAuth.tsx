@@ -52,7 +52,8 @@ export default function TelegramAuth() {
         <div className="flex flex-col items-center space-y-4 p-8">
             {isAuthenticated ? (
                 <>
-                    <p>Authenticated!</p>
+            <p>Authenticated!</p>
+            <p>Init data : {initDataState}</p>
                     <button
                         onClick={() => router.push('/protected')}
                         className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
@@ -63,7 +64,7 @@ export default function TelegramAuth() {
             ) : (
                 <div>
               <p>You need to be an owner of this account</p>
-              <p>Init data : {initDataState}</p>
+
                     <button
                         onClick={authenticateUser}
                         className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
