@@ -10,11 +10,18 @@ export default function Game() {
   const [userInfo, setUserInfo] = useState<any>(null)
   const [token, setToken] = useState<any>(null)
   const [energy, setEnergy] = useState<any>(null)
+  const [multiTapAmount, setMultiTapAmount] = useState<number>(1)
 
   const [isConnected, setIsConnected] = useState(false);
   const [transport, setTransport] = useState("N/A");
   const [socket, setSocket] = useState<any>()
   const countClick = useRef(0)
+
+  const [levelMultiTap, setLevelMultiTap] = useState<number>(0)
+  const [levelEnergyLimit, setLevelEnergyLimit] = useState<number>(0)
+  const [amountNextLevelMultiTap, setAmountNextLevelMultiTap] = useState<number>(0)
+  const [amountNextLevelEnergyLimit, setAmountNextLevelEnergyLimit] = useState<number>(0)
+  const [energyLimitAmount, setEnergyLimitAmount] = useState<number>(3000)
 
   useEffect(() => {
     const fetchMyInfo = async () => {
@@ -27,6 +34,10 @@ export default function Game() {
       )
       setUserInfo(promise.data.data)
       setToken(promise.data.data.info.token)
+      setMultiTapAmount(promise.data.data.multiTapAmount)
+      setLevelEnergyLimit(promise.data.data.info.levelEnergyLimit)
+      setLevelMultiTap(promise.data.data.info.levelMultiTap)
+      setEnergyLimitAmount(promise.data.data.energyLimitAmount)
     }
     fetchMyInfo()
 
@@ -75,7 +86,8 @@ export default function Game() {
 
   const handleOnClick = () => {
     countClick.current += 1
-    setToken(token + 1)
+    setToken(token + multiTapAmount)
+    setEnergy(energy - multiTapAmount)
   }
 
   useEffect(() => {
@@ -101,6 +113,16 @@ export default function Game() {
           }
           setEnergy(data.energy)
         })
+
+        socket.on('UPDATE_MULTI_TAP', (data: any) => {
+          console.log('UPDATE_MULTI_TAP: ', data)
+          setMultiTapAmount(data)
+        })
+
+        socket.on('UPDATE_ENERGY_LIMIT', (data: any) => {
+          console.log('UPDATE_ENERGY_LIMIT: ', data)
+          setEnergyLimitAmount(data)
+        })
       }
 
     }
@@ -111,6 +133,43 @@ export default function Game() {
     }
   }, [isConnected, socket])
 
+  useEffect(() => {
+    const fetchAmountNextLevel = async () => {
+      const promise = await axios.get(`${process.env.NEXT_PUBLIC_API_ENDPOINT}/api/booster/price`,
+        {
+          headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('token')
+          }
+        })
+      setAmountNextLevelEnergyLimit(promise.data.data.nextEnergyLimitPrice)
+      setAmountNextLevelMultiTap(promise.data.data.nextMultiTapPrice)
+    }
+    fetchAmountNextLevel()
+  }, [levelEnergyLimit, levelMultiTap])
+
+  const handleUpgradeMultiTap = async () => {
+    const promise = await axios.post(`${process.env.NEXT_PUBLIC_API_ENDPOINT}/api/booster/multi-tap/upgrade`,
+      {},
+      {
+        headers: {
+          'Authorization': 'Bearer ' + localStorage.getItem('token')
+        },
+      })
+    setLevelMultiTap(levelMultiTap + 1)
+
+  }
+
+  const handleUpgradeEnergyLimit = async () => {
+    const promise = await axios.post(`${process.env.NEXT_PUBLIC_API_ENDPOINT}/api/booster/energy-limit/upgrade`, {},
+      {
+        headers: {
+          'Authorization': 'Bearer ' + localStorage.getItem('token')
+        },
+      })
+    setLevelMultiTap(levelEnergyLimit + 1)
+
+  }
+
   return (
 
     <div>
@@ -120,18 +179,30 @@ export default function Game() {
             <p>Name: {userInfo ? userInfo.info.name : ''}</p>
             <p>TelegramId: {userInfo ? userInfo.info.userId : ''}</p>
             <p style={{ color: 'green' }}>Token: {token ? token : ''}</p>
-            <p>levelEnergyLimit: {userInfo ? userInfo.info.levelEnergyLimit : ''}</p>
-            <p>levelMultiTap: {userInfo ? userInfo.info.levelMultiTap : ''}</p>
             <p>miningProfitPerHours: {userInfo ? userInfo.miningProfitPerHours : ''}</p>
-            <p style={{ color: 'blue' }}>energyLimitAmount: {userInfo ? userInfo.energyLimitAmount : ''}</p>
-            <p>multiTapAmount: {userInfo ? userInfo.multiTapAmount : ''}</p>
-            <p>energy: {energy ? energy : ''}</p>
+            <p>multiTapAmount: {multiTapAmount}</p>
+            <p style={{ color: 'blue' }}>energy: {energy ? energy : ''} / {energyLimitAmount}</p>
             <div style={{ width: 100, height: 100, borderRadius: '50%', backgroundColor: 'red', marginTop: 20 }}
               onClick={handleOnClick}
             >
 
             </div>
             <p>Socket connection status: {isConnected ? "Connected" : "Disconnected"} {socket.id}</p>
+            <div style={{ marginTop: 20 }}>
+              <button
+                onClick={handleUpgradeMultiTap}
+                style={{ backgroundColor: '#f7e85c', padding: 5, borderRadius: 3, marginInline: 15, marginBottom: 20 }}>
+                Upgrade Multitap (Level: {levelMultiTap})
+                <p>{amountNextLevelMultiTap}$</p>
+              </button>
+              <button
+                onClick={handleUpgradeEnergyLimit}
+                style={{ backgroundColor: '#f7e85d', padding: 5, borderRadius: 3, }}>
+                Upgrade Energy Limit (Level: {levelEnergyLimit})
+                <p>{amountNextLevelEnergyLimit}$</p>
+              </button>
+
+            </div>
           </div> : <div></div>
       }
     </div>
