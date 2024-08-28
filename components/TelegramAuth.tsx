@@ -6,7 +6,6 @@ import { useEffect, useState } from 'react'
 
 export default function TelegramAuth() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const router = useRouter()
 
   useEffect(() => {
     authenticateUser()

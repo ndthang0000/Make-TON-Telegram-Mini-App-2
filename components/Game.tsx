@@ -2,8 +2,8 @@
 'use client'
 import axios from 'axios'
 import React, { useEffect, useRef, useState } from 'react'
+import { io } from "socket.io-client";
 
-import { socket } from "../app/socket";
 
 export default function Game() {
 
@@ -13,7 +13,7 @@ export default function Game() {
 
   const [isConnected, setIsConnected] = useState(false);
   const [transport, setTransport] = useState("N/A");
-
+  const [socket, setSocket] = useState<any>()
   const countClick = useRef(0)
 
   useEffect(() => {
@@ -34,7 +34,14 @@ export default function Game() {
 
 
   useEffect(() => {
-    if (socket.connected) {
+    let socketInstance = io(`${process.env.NEXT_PUBLIC_SOCKET}`, {
+      extraHeaders: {
+        authorization: `bearer ${localStorage.getItem('token')}`
+      }
+    });
+    setSocket(socketInstance)
+    setIsConnected(true);
+    if (socket && socket.connected) {
       onConnect();
     }
 
@@ -42,7 +49,7 @@ export default function Game() {
       setIsConnected(true);
       setTransport(socket.io.engine.transport.name);
 
-      socket.io.engine.on("upgrade", (transport) => {
+      socket.io.engine.on("upgrade", (transport: any) => {
         setTransport(transport.name);
       });
     }
@@ -52,12 +59,17 @@ export default function Game() {
       setTransport("N/A");
     }
 
-    socket.on("connect", onConnect);
-    socket.on("disconnect", onDisconnect);
+    if (socket) {
+      socket.on("connect", onConnect);
+      socket.on("disconnect", onDisconnect);
+    }
+
 
     return () => {
-      socket.off("connect", onConnect);
-      socket.off("disconnect", onDisconnect);
+      if (socket) {
+        socket.off("connect", onConnect);
+        socket.off("disconnect", onDisconnect);
+      }
     };
   }, []);
 
@@ -69,24 +81,35 @@ export default function Game() {
   useEffect(() => {
     const id = setInterval(() => {
       console.log('run ko mayf')
-      if (countClick.current > 0) {
+      if (socket && countClick.current > 0) {
         socket.emit('TAP', { tap: countClick.current })
         countClick.current = 0
       }
     }, 3000)
-  }, [])
+    return () => {
+      clearInterval(id);
+    };
+  }, [socket])
 
   useEffect(() => {
     if (isConnected) {
-      socket.on('REFRESH_BALANCE', (data) => {
-        console.log('REFRESH_BALANCE', data)
-        if (data.token > token) {
-          setToken(data.token)
-        }
-        setEnergy(data.energy)
-      })
+      if (socket) {
+        socket.on('REFRESH_BALANCE', (data: any) => {
+          console.log('REFRESH_BALANCE', data)
+          if (data.token > token) {
+            setToken(data.token)
+          }
+          setEnergy(data.energy)
+        })
+      }
+
     }
-  }, [isConnected])
+    return () => {
+      if (socket) {
+        socket.off('REFRESH_BALANCE')
+      }
+    }
+  }, [isConnected, socket])
 
   return (
 
