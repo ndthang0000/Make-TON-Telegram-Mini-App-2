@@ -92,7 +92,6 @@ export default function Game() {
 
   useEffect(() => {
     const id = setInterval(() => {
-      console.log('run ko mayf')
       if (socket && countClick.current > 0) {
         socket.emit('TAP', { tap: countClick.current })
         countClick.current = 0
@@ -114,13 +113,13 @@ export default function Game() {
           setEnergy(data.energy)
         })
 
-        socket.on('UPDATE_MULTI_TAP', (data: any) => {
+        socket.on('UPDATE_MULTI_TAP_UPGRADE', (data: any) => {
           console.log('UPDATE_MULTI_TAP: ', data)
           setMultiTapAmount(data.multiTapAmount)
           setLevelMultiTap(data.nextLevelMultiTap)
         })
 
-        socket.on('UPDATE_ENERGY_LIMIT', (data: any) => {
+        socket.on('UPDATE_ENERGY_LIMIT_UPGRADE', (data: any) => {
           console.log('UPDATE_ENERGY_LIMIT: ', data)
           setEnergyLimitAmount(data.energyLimitAmount)
           setLevelEnergyLimit(data.nextLevelEnergyLimit)
