@@ -38,6 +38,7 @@ export default function Game() {
       setLevelEnergyLimit(promise.data.data.info.levelEnergyLimit)
       setLevelMultiTap(promise.data.data.info.levelMultiTap)
       setEnergyLimitAmount(promise.data.data.energyLimitAmount)
+      setEnergy(promise.data.data.energy)
     }
     fetchMyInfo()
 
@@ -85,14 +86,21 @@ export default function Game() {
   }, []);
 
   const handleOnClick = () => {
+    if (energy < multiTapAmount) {
+      return
+    }
     countClick.current += 1
     setToken(token + multiTapAmount)
-    setEnergy(energy - multiTapAmount)
+    if (energy > multiTapAmount) {
+      setEnergy(energy - multiTapAmount)
+
+    }
   }
 
   useEffect(() => {
     const id = setInterval(() => {
       if (socket && countClick.current > 0) {
+        console.log("EMIT TAP", { tap: countClick.current })
         socket.emit('TAP', { tap: countClick.current })
         countClick.current = 0
       }
@@ -110,7 +118,14 @@ export default function Game() {
           if (data.token > token) {
             setToken(data.token)
           }
-          setEnergy(data.energy)
+          if (data.energy > energy) {
+            setEnergy(data.energy)
+          }
+          else {
+            if (countClick.current < 0) {
+              setEnergy(data.energy)
+            }
+          }
         })
 
         socket.on('UPDATE_MULTI_TAP_UPGRADE', (data: any) => {
