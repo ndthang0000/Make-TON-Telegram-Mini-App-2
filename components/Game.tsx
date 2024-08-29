@@ -116,12 +116,14 @@ export default function Game() {
 
         socket.on('UPDATE_MULTI_TAP', (data: any) => {
           console.log('UPDATE_MULTI_TAP: ', data)
-          setMultiTapAmount(data)
+          setMultiTapAmount(data.multiTapAmount)
+          setLevelMultiTap(data.nextLevelMultiTap)
         })
 
         socket.on('UPDATE_ENERGY_LIMIT', (data: any) => {
           console.log('UPDATE_ENERGY_LIMIT: ', data)
-          setEnergyLimitAmount(data)
+          setEnergyLimitAmount(data.energyLimitAmount)
+          setLevelEnergyLimit(data.nextLevelEnergyLimit)
         })
       }
 
@@ -155,7 +157,7 @@ export default function Game() {
           'Authorization': 'Bearer ' + localStorage.getItem('token')
         },
       })
-    setLevelMultiTap(levelMultiTap + 1)
+    // setLevelMultiTap(levelMultiTap + 1)
 
   }
 
@@ -166,7 +168,7 @@ export default function Game() {
           'Authorization': 'Bearer ' + localStorage.getItem('token')
         },
       })
-    setLevelMultiTap(levelEnergyLimit + 1)
+    // setLevelMultiTap(levelEnergyLimit + 1)
 
   }
 
