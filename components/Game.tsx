@@ -22,6 +22,7 @@ export default function Game() {
   const [amountNextLevelMultiTap, setAmountNextLevelMultiTap] = useState<number>(0)
   const [amountNextLevelEnergyLimit, setAmountNextLevelEnergyLimit] = useState<number>(0)
   const [energyLimitAmount, setEnergyLimitAmount] = useState<number>(3000)
+  const [userLevel, setUserLevel] = useState<number>(0)
 
   useEffect(() => {
     const fetchMyInfo = async () => {
@@ -39,6 +40,7 @@ export default function Game() {
       setLevelMultiTap(promise.data.data.info.levelMultiTap)
       setEnergyLimitAmount(promise.data.data.energyLimitAmount)
       setEnergy(promise.data.data.energy)
+      setUserLevel(promise.data.data.info.level)
     }
     fetchMyInfo()
 
@@ -139,6 +141,15 @@ export default function Game() {
           setEnergyLimitAmount(data.energyLimitAmount)
           setLevelEnergyLimit(data.nextLevelEnergyLimit)
         })
+
+        socket.on('MINING_PROFIT_OFF', (data: any) => {
+          console.log('MINING_PROFIT_OFF: ', data)
+        })
+
+        socket.on('UPGRADE_LEVEL', (data: any) => {
+          console.log('UPGRADE_LEVEL: ', data)
+          setUserLevel(data.level)
+        })
       }
 
     }
@@ -197,6 +208,7 @@ export default function Game() {
             <p style={{ color: 'green' }}>Token: {token ? token : ''}</p>
             <p>miningProfitPerHours: {userInfo ? userInfo.miningProfitPerHours : ''}</p>
             <p>multiTapAmount: {multiTapAmount}</p>
+            <p>User Level: {userLevel}</p>
             <p style={{ color: 'blue' }}>energy: {energy ? energy : ''} / {energyLimitAmount}</p>
             <div style={{ width: 100, height: 100, borderRadius: '50%', backgroundColor: 'red', marginTop: 20 }}
               onClick={handleOnClick}
